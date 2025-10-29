@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Do U Love Me?</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg1:#ffecd2;
+      --bg2:#fcb69f;
+      --card:#ffffffaa;
+      --accent:#ff5c7c;
+      --muted:#555;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:'Poppins',system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial}
+    body{
+      display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(135deg,var(--bg1),var(--bg2));
+      padding:32px;
+    }
+
+    .card{
+      width:min(720px,96vw);
+      background:linear-gradient(180deg,rgba(255,255,255,0.9),rgba(255,255,255,0.85));
+      border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,0.12);
+      padding:36px;display:flex;flex-direction:column;gap:18px;align-items:center;position:relative;overflow:hidden
+    }
+
+    h1{font-size:2rem;margin:0;color:#222;text-align:center}
+    p.lead{margin:0;color:var(--muted);text-align:center}
+
+    .play-area{width:100%;height:260px;display:flex;align-items:center;justify-content:center;position:relative}
+
+    .btn{
+      --w:140px;--h:56px;
+      width:var(--w);height:var(--h);border-radius:12px;border:0;cursor:pointer;font-weight:800;font-size:18px;letter-spacing:0.5px;
+      display:inline-flex;align-items:center;justify-content:center;user-select:none;transition:transform .18s ease,box-shadow .18s ease;box-shadow:0 6px 18px rgba(0,0,0,0.12);
+    }
+
+    .btn:active{transform:translateY(2px)}
+
+    .no{
+      background:transparent;border:2px solid rgba(0,0,0,0.08);color:#333;padding:8px 18px
+    }
+
+    .yes{
+      background:linear-gradient(90deg,var(--accent),#ff7aa6);color:white;padding:8px 18px;position:absolute;left:calc(50% - 160px);top:50%;transform:translateY(-50%);
+    }
+
+    .yes.trolled{transform:none;transition:transform .25s ease}
+
+    .controls{display:flex;gap:12px;align-items:center}
+
+    .footer{font-size:12px;color:#333;margin-top:12px;opacity:0.9}
+
+    /* small screens */
+    @media (max-width:520px){
+      .card{padding:20px}
+      .play-area{height:220px}
+      .btn{--w:120px;--h:48px;font-size:16px}
+    }
+
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Do u love me?</h1>
+    <p class="lead">Pick <strong>Yes</strong> or <strong>No</strong>. If you try to click Yes... be ready to be trolled 😈</p>
+
+    <div class="play-area" id="playArea">
+      <button class="btn no" id="noBtn">No</button>
+      <button class="btn yes" id="yesBtn">Yes</button>
+    </div>
+
+    <div class="controls">
+      <label style="font-size:13px;color:var(--muted)">Or type your answer:</label>
+      <input id="textAnswer" placeholder="type yes or no and press Enter" style="padding:8px 12px;border-radius:8px;border:1px solid rgba(0,0,0,0.08);min-width:200px;outline:none" />
+    </div>
+
+    <div class="footer">website made by <strong>Arman Sandhu</strong></div>
+  </div>
+
+  <script>
+    const yes = document.getElementById('yesBtn');
+    const no = document.getElementById('noBtn');
+    const area = document.getElementById('playArea');
+    const input = document.getElementById('textAnswer');
+
+    // Utility: get a random position inside the play area for the yes button
+    function randomPosition(button) {
+      const pad = 12; // padding from edges
+      const aRect = area.getBoundingClientRect();
+      const bRect = button.getBoundingClientRect();
+      const maxX = aRect.width - bRect.width - pad;
+      const maxY = aRect.height - bRect.height - pad;
+      const x = Math.max(0, Math.random() * maxX);
+      const y = Math.max(0, Math.random() * maxY);
+      return {x, y};
+    }
+
+    // Move the yes button smoothly to a random place
+    function moveYes(randomize=true) {
+      const pos = randomPosition(yes);
+      yes.style.left = pos.x + 'px';
+      yes.style.top = pos.y + 'px';
+      yes.classList.add('trolled');
+      setTimeout(()=> yes.classList.remove('trolled'), 400);
+    }
+
+    // Initial center placement (responsive)
+    function placeCenter() {
+      const aRect = area.getBoundingClientRect();
+      const bRect = yes.getBoundingClientRect();
+      yes.style.left = (aRect.width/2 - bRect.width/2) + 'px';
+      yes.style.top  = (aRect.height/2 - bRect.height/2) + 'px';
+      no.style.position = 'absolute';
+      no.style.left = (aRect.width/2 + bRect.width/2 + 24) + 'px';
+      no.style.top = (aRect.height/2 - bRect.height/2) + 'px';
+    }
+
+    // When mouse moves close to Yes button, move it away (classic troll)
+    area.addEventListener('mousemove', (e)=>{
+      const r = yes.getBoundingClientRect();
+      const distX = Math.abs(e.clientX - (r.left + r.width/2));
+      const distY = Math.abs(e.clientY - (r.top + r.height/2));
+      const distance = Math.sqrt(distX*distX + distY*distY);
+      // if cursor is within 120px, jump
+      if (distance < 120) {
+        moveYes();
+      }
+    });
+
+    // If someone manages to click yes, keep trolling: move again and show a cheeky message
+    yes.addEventListener('click', (ev)=>{
+      ev.preventDefault();
+      // tiny celebration then move
+      yes.textContent = 'Heh';
+      setTimeout(()=>{
+        yes.textContent = 'Yes';
+        moveYes();
+      }, 600);
+    });
+
+    // No button can be clicked — reveal a playful reply
+    no.addEventListener('click', ()=>{
+      alert("Ouch! You clicked 'No' — that hurts 😢");
+    });
+
+    // If user types 'yes' into the input, trigger the trolling behavior
+    input.addEventListener('keydown',(e)=>{
+      if (e.key === 'Enter'){
+        const val = input.value.trim().toLowerCase();
+        if (val === 'yes'){
+          // simulate typed yes: move the Yes button
+          moveYes();
+          input.value='';
+        } else if (val === 'no'){
+          alert('You typed NO. Bold.');
+          input.value='';
+        } else {
+          alert('Type either yes or no and press Enter.');
+        }
+      }
+    });
+
+    // Re-center on resize/load
+    window.addEventListener('resize', placeCenter);
+    window.addEventListener('load', ()=>{
+      // small timeout so layout stabilizes
+      setTimeout(placeCenter,80);
+    });
+
+  </script>
+</body>
+</html>
